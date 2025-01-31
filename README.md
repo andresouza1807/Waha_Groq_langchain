@@ -5,7 +5,7 @@
 Clone the repository to your local environment:
 
 ```
-git clone https://github.com/your-username/repository-name.git
+git clone https://github.com/andresouza1807/Waha_Groq_langchain.git
 ```
 
 ## Step 2: Insert the LLM API Key
@@ -60,7 +60,7 @@ Your environment is set up and running! You can now interact with the bot.
 
 If you have any questions or suggestions, feel free to reach out! 
 
-==============================================================================================================================================================================
+=================================================================================================
 
 # Instruções para Rodar o Projeto
 
@@ -69,7 +69,7 @@ If you have any questions or suggestions, feel free to reach out!
 Clone o repositório para o seu ambiente local:
 
 ```
-git clone https://github.com/seu-usuario/nome-do-repositorio.git
+git clone https://github.com/andresouza1807/Waha_Groq_langchain.git
 ```
 
 ## Passo 2: Inserir a API Key da LLM
