@@ -60,7 +60,7 @@ Your environment is set up and running! You can now interact with the bot.
 
 If you have any questions or suggestions, feel free to reach out! 
 
-=================================================================================================
+=======================================================================================
 
 # Instruções para Rodar o Projeto
 
