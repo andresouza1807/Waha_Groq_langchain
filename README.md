@@ -12,7 +12,7 @@ git clone https://github.com/andresouza1807/Waha_Groq_langchain.git
 
 **Important:** Before starting the containers, you need to configure the **API Key** for the LLM (Large Language Model) that will be used in the bot.
 
-1. Navigate to the configuration file that contains the API key (usually, this is in a `.env` file or something similar).
+1. Navigate to the configuration file that contains the API key (this is in a `.env` file).
 2. Insert your API Key in the corresponding field. For example:
    ```
    LLM_API_KEY=Your_API_KEY_here
@@ -76,7 +76,7 @@ git clone https://github.com/andresouza1807/Waha_Groq_langchain.git
 
 **Importante:** Antes de inicializar os containers, você deve configurar a **API Key** da LLM (Large Language Model) que será usada no bot.
 
-1. Navegue até o arquivo de configuração que contém a chave da API (geralmente, isso está em um arquivo `.env` ou algo semelhante).
+1. Navegue até o arquivo de configuração que contém a chave da API (isso está em um arquivo `.env` ).
 2. Insira a API Key no campo correspondente. Por exemplo:
    ```
    LLM_API_KEY=Sua_API_KEY_aqui
