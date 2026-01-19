@@ -1,127 +1,339 @@
-# Instructions to Run the Project
+# 🤖 WhatsApp Bot com Groq LLM e Waha
 
-## Step 1: Clone the Repository
+Bot inteligente para WhatsApp que utiliza **Groq LLM** (Llama 3.3 70B) para gerar respostas em tempo real e **Waha API** para integração com WhatsApp.
 
-Clone the repository to your local environment:
+## 📋 Pré-requisitos
 
-```
+- **Docker** e **Docker Compose** instalados
+- **Python 3.10+** (para desenvolvimento local)
+- **Groq API Key** - [Obter aqui](https://console.groq.com)
+- **Waha API Key** - [Obter aqui](https://waha.devlikeapro.com)
+- **WhatsApp** para testar o bot
+
+## 🚀 Início Rápido
+
+### 1️⃣ Clonar o Repositório
+
+```bash
 git clone https://github.com/andresouza1807/Waha_Groq_langchain.git
+cd Waha_Groq_langchain
 ```
 
-## Step 2: Insert the LLM API Key
+### 2️⃣ Configurar Variáveis de Ambiente
 
-**Important:** Before starting the containers, you need to configure the **API Key** for the LLM (Large Language Model) that will be used in the bot.
+Crie/edite o arquivo `.env` com suas chaves:
 
-1. Navigate to the configuration file that contains the API key (this is in a `.env` file).
-2. Insert your API Key in the corresponding field. For example:
+```bash
+# Groq API (obtenha em https://console.groq.com)
+GROQ_API_KEY=gsk_seu_api_key_aqui
+
+# Waha API (obtenha em https://waha.devlikeapro.com)
+WAHA_API_KEY=sua_waha_api_key
+WAHA_URL=http://wpp_bot_waha:3000
+WAHA_SESSION_NAME=default
+
+# Dashboard Waha (credenciais opcionais)
+WAHA_DASHBOARD_USERNAME=admin
+WAHA_DASHBOARD_PASSWORD=sua_senha
+```
+
+### 3️⃣ Iniciar os Containers
+
+```bash
+docker-compose up -d
+```
+
+Aguarde 30-60 segundos para WAHA e API iniciarem.
+
+### 4️⃣ Verificar Status
+
+```bash
+# Ver logs da API
+docker-compose logs -f api
+
+# Ver logs do WAHA
+docker-compose logs -f waha
+
+# Listar containers
+docker-compose ps
+```
+
+## 🔧 Configuração do Waha
+
+### Acessar o Dashboard
+
+Abra seu navegador e vá para: `http://localhost:3000/dashboard`
+
+### Configurar Webhook
+
+1. Na aba **Sessions**, clique em **Configuration**
+2. Configure o webhook com a URL:
    ```
-   LLM_API_KEY=Your_API_KEY_here
+   http://api:5000/wpp-bot-api
    ```
+3. Em **Events**, selecione apenas **Message**
+4. Clique em **Update**
 
-## Step 3: Install Docker
+### Iniciar Sessão WhatsApp
 
-Make sure you have the latest version of [Docker](https://www.docker.com/get-started) installed on your machine. If you don't have it, follow the instructions in the link to install it.
+1. Na aba **Sessions**, clique em **Start**
+2. Quando aparecer "Login", clique no botão **Login**
+3. Escaneie o QR code com seu WhatsApp
+4. Aguarde a sincronização (o status mudará para "CONNECTED")
 
-## Step 4: Start the Containers
+## 📡 Testando o Bot
 
-After inserting the API Key and installing Docker, navigate to the folder where the project is saved and run the following commands in your command line (CLI):
+### Via cURL (Teste de Webhook)
 
-```
-docker-compose up --build api
-docker-compose up --build waha
-```
-
-These commands will build and start the necessary containers for the project to function.
-
-## Step 5: Access the Dashboard
-
-After the containers are up, open your browser and go to the following URL:
-
-```
-http://[::1]:3000/dashboard/
+```bash
+curl -X POST http://localhost:5000/test \
+  -H "Content-Type: application/json" \
+  -d '{"message":"Olá! Como você está?"}'
 ```
 
-## Step 6: Configure the Session
-
-1. In the control panel, go to the **'Sessions'** tab and click on **'Configuration'**.
-2. Configure the **'Webhook'** session with the URL `http://api:5000/chatbot/webhook`.
-3. In **'Events'**, check only the **'Message'** option.
-4. After configuring, click **'Update'** to save the changes.
-
-## Step 7: Start the Session
-
-1. Still in the **'Sessions'** tab, next to **'Configuration'**, click **'Start'**.
-2. After clicking **'Start'**, the **'Status'** column will change to "Login".
-3. Click the **'Login'** button, scan the QR code with your WhatsApp, and wait for the synchronization.
-
-## Done!
-
-Your environment is set up and running! You can now interact with the bot.
-
-If you have any questions or suggestions, feel free to reach out! 
-
-=======================================================================================
-
-# Instruções para Rodar o Projeto
-
-## Passo 1: Clonar o Repositório
-
-Clone o repositório para o seu ambiente local:
-
-```
-git clone https://github.com/andresouza1807/Waha_Groq_langchain.git
+Resposta esperada:
+```json
+{
+  "input": "Olá! Como você está?",
+  "response": "Estou bem, obrigado! Como posso ajudar?",
+  "status": "success"
+}
 ```
 
-## Passo 2: Inserir a API Key da LLM
+### Via WhatsApp
 
-**Importante:** Antes de inicializar os containers, você deve configurar a **API Key** da LLM (Large Language Model) que será usada no bot.
+Envie qualquer mensagem para o número vinculado. O bot responderá com:
+- Indicador de digitação ("digitando...")
+- Resposta gerada pela Groq IA
+- Sem erros nos logs
 
-1. Navegue até o arquivo de configuração que contém a chave da API (isso está em um arquivo `.env` ).
-2. Insira a API Key no campo correspondente. Por exemplo:
-   ```
-   LLM_API_KEY=Sua_API_KEY_aqui
-   ```
+## 🔍 Diagnosticar Problemas
 
-## Passo 3: Instalar o Docker
+### Script de Diagnóstico
 
-Certifique-se de ter a versão mais recente do [Docker](https://www.docker.com/get-started) instalada em sua máquina. Se não tiver, siga as instruções no link para a instalação.
-
-## Passo 4: Executar os Containers
-
-Após inserir a API Key e instalar o Docker, navegue até a pasta onde o projeto está salvo e execute os comandos abaixo na sua linha de comando (CLI):
-
-```
-docker-compose up --build api
-docker-compose up --build waha
+```bash
+python diagnose_bot.py
 ```
 
-Esses comandos vão construir e rodar os containers necessários para o funcionamento do projeto.
+Isso verifica:
+- ✓ Variáveis de ambiente
+- ✓ Conexão com Groq
+- ✓ Conexão com Waha
+- ✓ Inicialização do bot
+- ✓ Logs recentes
 
-## Passo 5: Acessar o Dashboard
+### Verificar Logs
 
-Após a inicialização dos containers, abra o seu navegador e acesse a URL abaixo:
+```bash
+# Ver últimas linhas do bot.log
+tail -f bot.log
+
+# Ver logs específicos
+grep "ERROR" bot.log
+grep "Message sent" bot.log
+```
+
+### Problemas Comuns
+
+#### ❌ 401 Unauthorized do Waha
+
+**Problema:** Bot recebe erro 401 ao tentar se conectar ao Waha
+
+**Solução:**
+1. Verifique `WAHA_API_KEY` no `.env`
+2. Copie a chave corretamente sem espaços
+3. Reinicie os containers: `docker-compose restart`
+
+#### ❌ Bot não responde mensagens
+
+**Verificar:**
+1. GROQ_API_KEY está configurada? → `docker-compose logs api | grep GROQ`
+2. Webhook foi configurado? → Verificar no dashboard do Waha
+3. Status da sessão é CONNECTED? → Ver no dashboard
+
+#### ❌ Connection refused - Waha
+
+**Problema:** Não consegue conectar ao `wpp_bot_waha:3000`
+
+**Solução:**
+```bash
+# Verificar se containers estão rodando
+docker-compose ps
+
+# Reiniciar Waha
+docker-compose restart waha
+
+# Aguardar inicialização (30-60s)
+sleep 30
+```
+
+## 📁 Estrutura do Projeto
 
 ```
-http://[::1]:3000/dashboard/
+Waha_Groq_langchain/
+├── app.py                 # Aplicação Flask principal
+├── bot/
+│   ├── __init__.py
+│   └── ai_bot.py         # Lógica da IA com Groq
+├── services/
+│   ├── __init__.py
+│   └── waha.py           # Cliente API do Waha
+├── docker-compose.yml    # Orquestração de containers
+├── Dockerfile.api        # Imagem Docker da API
+├── requirements.txt      # Dependências Python
+├── .env                  # Variáveis de ambiente
+├── diagnose_bot.py       # Script de diagnóstico
+└── README.md            # Este arquivo
 ```
 
-## Passo 6: Configurar a Sessão
+## 🔌 API Endpoints
 
-1. No painel de controle, vá até a aba **'Sessions'** e clique em **'Configuration'**.
-2. Configure a sessão **'Webhook'** com a URL `http://api:5000/chatbot/webhook`.
-3. Em **'Events'**, marque apenas a opção **'Message'**.
-4. Após configurar, clique em **'Update'** para salvar as alterações.
+### Health Check
+```
+GET /health
+```
 
-## Passo 7: Iniciar a Sessão
+Resposta:
+```json
+{
+  "status": "ok",
+  "timestamp": "2026-01-18T00:00:00",
+  "service": "WhatsApp Bot API"
+}
+```
 
-1. Ainda na aba **'Sessions'**, ao lado de **'Configuration'**, clique em **'Start'**.
-2. Após clicar em **'Start'**, você verá a coluna **'Status'** mudar para "Login".
-3. Clique no botão **'Login'**, escaneie o QR code com o seu WhatsApp e aguarde a sincronização.
+### Webhook Waha
+```
+POST /wpp-bot-api
+```
 
-## Pronto!
+Payload esperado:
+```json
+{
+  "payload": {
+    "type": "chat",
+    "from": "5511999999999",
+    "body": "Sua mensagem"
+  }
+}
+```
 
-Seu ambiente está configurado e funcionando! Agora você pode interagir com o bot.
+### Endpoint de Teste
+```
+POST /test
+```
 
-Se tiver alguma dúvida ou sugestão, não hesite em entrar em contato! 
+Payload:
+```json
+{
+  "message": "Sua mensagem aqui"
+}
+```
+
+## 🛠️ Desenvolvimento Local
+
+### Instalar Dependências
+
+```bash
+python -m venv venv
+source venv/bin/activate  # Linux/Mac
+# ou
+venv\Scripts\activate  # Windows
+
+pip install -r requirements.txt
+```
+
+### Rodar Sem Docker
+
+```bash
+# Terminal 1: Iniciar Waha (via Docker)
+docker run -p 3000:3000 devlikeapro/waha:latest
+
+# Terminal 2: Rodar API local
+python app.py
+```
+
+## 📊 Monitoramento
+
+### Ver Logs em Tempo Real
+
+```bash
+# Todos os serviços
+docker-compose logs -f
+
+# Apenas API
+docker-compose logs -f api
+
+# Apenas Waha
+docker-compose logs -f waha
+```
+
+### Logs Importantes
+
+- `✓ GROQ_API_KEY loaded successfully` - IA pronta
+- `✓ Authorization header will be sent` - Waha autenticado
+- `Processing message from` - Mensagem recebida
+- `Bot response received` - IA respondeu
+- `Message sent successfully` - Mensagem entregue
+
+## 🔐 Segurança
+
+- **GROQ_API_KEY** - Nunca compartilhe, use variáveis de ambiente
+- **WAHA_API_KEY** - Mantenha privada, use `.env`
+- **Logs** - Contêm dados sensíveis, não compartilhe publicamente
+- **Docker** - Use secrets se em produção
+
+## 📦 Dependências Principais
+
+- **Flask** - Framework web
+- **LangChain** - Orquestração de IA
+- **Groq** - API de LLM
+- **Requests** - Cliente HTTP
+
+## 🚨 Troubleshooting
+
+### Erro: `cannot import name 'config' from 'decouple'`
+
+```bash
+pip uninstall decouple -y
+pip install python-decouple
+```
+
+### Erro: `Connection refused` do Waha
+
+```bash
+# Aguardar inicialização do Waha
+sleep 60
+docker-compose logs waha | tail -10
+```
+
+### Bot responde com vazio
+
+1. Verifique `GROQ_API_KEY`
+2. Teste com `curl -X POST http://localhost:5000/test -H "Content-Type: application/json" -d '{"message":"teste"}'`
+3. Veja logs: `tail -f bot.log`
+
+## 📞 Suporte
+
+Para problemas:
+
+1. Verifique os logs: `docker-compose logs api`
+2. Execute diagnóstico: `python diagnose_bot.py`
+3. Consulte documentação:
+   - [Waha Docs](https://waha.devlikeapro.com)
+   - [Groq Docs](https://console.groq.com/docs)
+
+## 📜 Licença
+
+Projeto aberto para uso educacional e comercial.
+
+## 👨‍💻 Autor
+
+André Souza - [GitHub](https://github.com/andresouza1807)
+
+---
+
+**Última atualização:** Janeiro 2026  
+**Versão:** 2.0 
 
 ---
