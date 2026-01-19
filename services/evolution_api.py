@@ -1,10 +1,9 @@
-"""Waha API client for WhatsApp integration."""
+"""Evolution API client for WhatsApp integration."""
 
 import logging
 import os
 from typing import Optional
 import requests
-from requests.auth import HTTPBasicAuth
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 from decouple import config
@@ -12,61 +11,61 @@ from decouple import config
 logger = logging.getLogger(__name__)
 
 
-class Waha:
-    """Waha API client for WhatsApp messaging.
+class EvolutionAPI:
+    """Evolution API client for WhatsApp messaging.
 
     Attributes:
-        api_url: Base URL for Waha API
-        session: WhatsApp session name
+        api_url: Base URL for Evolution API
+        api_key: API key for authentication
         timeout: Request timeout in seconds
         retries: Number of retry attempts for failed requests
     """
 
     def __init__(self, api_url: str | None = None,
-                 session: str | None = None,
+                 api_key: str | None = None,
                  timeout: int = 10,
                  retries: int = 3):
-        """Initialize Waha client.
+        """Initialize Evolution API client.
 
         Args:
-            api_url: The base URL for Waha API
-            session: The WhatsApp session name
+            api_url: The base URL for Evolution API
+            api_key: The API key for authentication
             timeout: Request timeout in seconds
             retries: Number of retry attempts
         """
         self.__api_url = api_url or os.getenv(
-            'WAHA_URL', 'http://wpp_bot_waha:3000')
-        self.__session = session or os.getenv('WAHA_SESSION_NAME', 'default')
+            'EVOLUTION_API_URL', 'http://localhost:3333')
+        self.__api_key = api_key or os.getenv('EVOLUTION_API_KEY', '')
         self.__timeout = timeout
         self.__retries = retries
+        self.__instance_name = os.getenv('EVOLUTION_INSTANCE_NAME', 'default')
 
-        # WAHA Community/CORE tier requires proper authentication via Dashboard
-        # The API key shown in logs is informational only and doesn't work for auth
-        self.__api_key = os.environ.get('WAHA_API_KEY') or config(
-            'WAHA_API_KEY', default=None)
-
-        # Setup headers
+        # Setup headers with API key
         self.__headers = {
             'Content-Type': 'application/json',
         }
 
-        # Try Bearer token with API key as fallback (usually doesn't work in Community tier)
         if self.__api_key:
-            self.__headers['Authorization'] = f'Bearer {self.__api_key}'
-            logger.warning(
-                f'Using API Key as Bearer token (may not work - requires WAHA Dashboard configuration)')
+            self.__headers['apikey'] = self.__api_key
+            logger.info(f'Evolution API initialized with API key')
+        else:
+            logger.warning('Evolution API key not configured')
 
-        # No auth object needed since Bearer is in headers
-        self.__auth = None
+        self.__session_obj = self._create_session()
+        logger.info(
+            f'Evolution API client initialized: {self.__api_url} (instance: {self.__instance_name})')
+
+        # Test connection to Evolution API
         try:
             status = self.get_status()
             if status:
-                logger.info('✓ WAHA connection successful')
+                logger.info('✓ Evolution API connection successful')
             else:
-                logger.error(f'❌ WAHA at {self.__api_url} did not respond')
+                logger.error(
+                    f'❌ Evolution API at {self.__api_url} did not respond')
         except Exception as e:
             logger.error(
-                f'❌ Failed to connect to WAHA at {self.__api_url}: {e}')
+                f'❌ Failed to connect to Evolution API at {self.__api_url}: {e}')
 
     def _create_session(self) -> requests.Session:
         """Create a requests session with retry strategy.
@@ -90,8 +89,8 @@ class Waha:
         """Send a text message via WhatsApp.
 
         Args:
-            chat_id: The recipient's chat ID
-            message: The message to send
+            chat_id: The recipient's WhatsApp number with @c.us or @g.us
+            message: The message text to send
 
         Returns:
             The response JSON or None if an error occurs
@@ -101,10 +100,9 @@ class Waha:
                 f'❌ Invalid parameters: chat_id={chat_id}, message={message}')
             return None
 
-        url = f'{self.__api_url}/api/sendText'
+        url = f'{self.__api_url}/message/sendText/{self.__instance_name}'
         payload = {
-            'session': self.__session,
-            'chatId': chat_id,
+            'number': chat_id.replace('@c.us', '').replace('@g.us', ''),
             'text': message,
         }
 
@@ -124,7 +122,7 @@ class Waha:
             return None
         except requests.exceptions.ConnectionError:
             logger.error(
-                f'❌ Connection error sending message to {chat_id}. WAHA not reachable at {self.__api_url}')
+                f'❌ Connection error sending message to {chat_id}. Evolution API not reachable at {self.__api_url}')
             return None
         except requests.RequestException as e:
             logger.error(f'❌ Error sending message to {chat_id}: {e}')
@@ -146,10 +144,10 @@ class Waha:
             logger.warning('Invalid chat_id for start_typing')
             return None
 
-        url = f'{self.__api_url}/api/startTyping'
+        url = f'{self.__api_url}/chat/toggleChatPresence/{self.__instance_name}'
         payload = {
-            'session': self.__session,
-            'chatId': chat_id,
+            'number': chat_id.replace('@c.us', '').replace('@g.us', ''),
+            'presence': 'typing',
         }
 
         try:
@@ -179,10 +177,10 @@ class Waha:
             logger.warning('Invalid chat_id for stop_typing')
             return None
 
-        url = f'{self.__api_url}/api/stopTyping'
+        url = f'{self.__api_url}/chat/toggleChatPresence/{self.__instance_name}'
         payload = {
-            'session': self.__session,
-            'chatId': chat_id,
+            'number': chat_id.replace('@c.us', '').replace('@g.us', ''),
+            'presence': 'paused',
         }
 
         try:
@@ -199,22 +197,35 @@ class Waha:
             logger.debug(f'Warning: Could not stop typing for {chat_id}: {e}')
             return None
 
-    def get_status(self) -> Optional[dict]:
-        """Get Waha API status using the public /ping endpoint.
+    def get_status(self) -> bool:
+        """Get Evolution API status.
 
         Returns:
-            Status information or None if unreachable
+            True if API is healthy, False otherwise
         """
-        url = f'{self.__api_url}/ping'
         try:
+            url = f'{self.__api_url}/instance/fetchInstances'
             response = self.__session_obj.get(
                 url=url,
                 headers=self.__headers,
                 timeout=self.__timeout
             )
-            response.raise_for_status()
-            logger.info('✓ Waha API is healthy (/ping responded)')
-            return response.json()
-        except requests.RequestException as e:
-            logger.error(f'Error getting Waha status: {e}')
-            return None
+
+            if response.status_code == 200:
+                logger.debug('✓ Evolution API is healthy')
+                return True
+            else:
+                logger.warning(
+                    f'Evolution API returned {response.status_code}')
+                return False
+        except requests.exceptions.Timeout:
+            logger.warning(
+                f'Timeout connecting to Evolution API at {self.__api_url}')
+            return False
+        except requests.exceptions.ConnectionError:
+            logger.warning(
+                f'Cannot connect to Evolution API at {self.__api_url}')
+            return False
+        except Exception as e:
+            logger.warning(f'Error checking Evolution API status: {e}')
+            return False

@@ -1,10 +1,12 @@
-"""WhatsApp Bot API using Waha and Groq LLM."""
+"""WhatsApp Bot API using Evolution API and Groq LLM."""
 
 import logging
 import json
+import os
 from typing import Tuple, Dict, Any
 from datetime import datetime
 from bot.ai_bot import AIBot
+from services.evolution_api import EvolutionAPI
 from services.waha import Waha
 from flask import Flask, request, jsonify
 from functools import wraps
@@ -22,8 +24,17 @@ logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 
+# Determine which WhatsApp service to use
+USE_EVOLUTION = os.getenv('USE_EVOLUTION_API', 'true').lower() == 'true'
+
 # Initialize services globally
-waha_service = Waha()
+if USE_EVOLUTION:
+    whatsapp_service = EvolutionAPI()
+    logger.info('✓ Using Evolution API for WhatsApp')
+else:
+    whatsapp_service = Waha()
+    logger.info('✓ Using WAHA for WhatsApp')
+
 ai_bot = AIBot()
 
 
@@ -105,7 +116,7 @@ def webhook() -> Tuple[Dict[str, Any], int]:
 
         # Inicia "digitando"
         try:
-            type_result = waha_service.start_typing(chat_id=chat_id)
+            type_result = whatsapp_service.start_typing(chat_id=chat_id)
             if not type_result:
                 logger.warning(
                     f'Failed to start typing indicator for {chat_id}')
@@ -127,7 +138,7 @@ def webhook() -> Tuple[Dict[str, Any], int]:
 
         # Envia resposta
         logger.info(f'Sending message to {chat_id}...')
-        send_result = waha_service.send_message(
+        send_result = whatsapp_service.send_message(
             chat_id=chat_id, message=response)
 
         if not send_result:
@@ -142,7 +153,7 @@ def webhook() -> Tuple[Dict[str, Any], int]:
 
         # Para "digitando"
         try:
-            waha_service.stop_typing(chat_id=chat_id)
+            whatsapp_service.stop_typing(chat_id=chat_id)
         except Exception as e:
             logger.warning(f'Failed to stop typing: {e}')
 

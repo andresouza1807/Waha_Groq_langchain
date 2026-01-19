@@ -34,16 +34,64 @@
 
 
 services:
-  waha:
-    image: devlikeapro/waha:latest
-    container_name: wpp_bot_waha
+  evolution:
+    image: atendesimples/evolution-api:latest
+    container_name: evolution
     restart: always
     ports:
-      - "3000:3000"
-    env_file:
-      - .env
+      - "3333:3333"
+    environment:
+      - SERVER_URL=http://evolution:3333
+      - DATABASE_CONNECTION_URI=postgresql://postgres:postgres@evolution_db:5432/evolution
+      - REDIS_URI=redis://evolution_redis:6379
+      - LOG_LEVEL=info
+      - PROVIDER=evolution
+    depends_on:
+      - evolution_db
+      - evolution_redis
+    networks:
+      default:
+        aliases:
+          - evolution
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3333/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  evolution_db:
+    image: postgres:15-alpine
+    container_name: evolution_db
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=evolution
     volumes:
-      - waha-data:/app/data
+      - evolution-data:/var/lib/postgresql/data
+    networks:
+      default:
+        aliases:
+          - evolution_db
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  evolution_redis:
+    image: redis:7-alpine
+    container_name: evolution_redis
+    restart: always
+    networks:
+      default:
+        aliases:
+          - evolution_redis
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   api:
     build:
@@ -56,11 +104,16 @@ services:
     env_file:
       - .env
     depends_on:
-      - waha
+      evolution:
+        condition: service_healthy
     networks:
       default:
         aliases:
           - api
+    environment:
+      - USE_EVOLUTION_API=true
+      - EVOLUTION_API_URL=http://evolution:3333
+      - EVOLUTION_INSTANCE_NAME=default
 
 volumes:
-  waha-data:
+  evolution-data:
