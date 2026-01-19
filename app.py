@@ -7,7 +7,6 @@ from typing import Tuple, Dict, Any
 from datetime import datetime
 from bot.ai_bot import AIBot
 from services.evolution_api import EvolutionAPI
-from services.waha import Waha
 from flask import Flask, request, jsonify
 from functools import wraps
 
@@ -24,18 +23,11 @@ logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 
-# Determine which WhatsApp service to use
-USE_EVOLUTION = os.getenv('USE_EVOLUTION_API', 'true').lower() == 'true'
-
-# Initialize services globally
-if USE_EVOLUTION:
-    whatsapp_service = EvolutionAPI()
-    logger.info('✓ Using Evolution API for WhatsApp')
-else:
-    whatsapp_service = Waha()
-    logger.info('✓ Using WAHA for WhatsApp')
-
+# Initialize Evolution API service
+whatsapp_service = EvolutionAPI()
 ai_bot = AIBot()
+
+logger.info('✓ WhatsApp Bot initialized with Evolution API')
 
 
 def log_request(f):
@@ -81,8 +73,8 @@ def webhook() -> Tuple[Dict[str, Any], int]:
             logger.info('Ignoring event without payload')
             return jsonify({'ignored': True, 'reason': 'Missing payload'}), 200
 
-        # Filtra apenas mensagens de chat
-        # O tipo da mensagem pode estar em payload.type ou payload._data.type
+        # Always return 200 to webhook even for ignored events
+        # Filter only chat messages
         message_type = payload.get('type') or (
             payload.get('_data') or {}).get('type')
         if message_type != 'chat':

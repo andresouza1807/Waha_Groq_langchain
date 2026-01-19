@@ -1,37 +1,4 @@
-# version: "3.9"
-
-# services:
-#   waha:
-#     image: devlikeapro/waha:latest
-#     container_name: wpp_bot_waha
-#     restart: always
-#     ports:
-#       - "3000:3000"
-#     env_file:
-#       - .env
-#     volumes:
-#       - waha-data:/app/data
-
-# api:
-#     build:
-#       context: .
-#       dockerfile: Dockerfile.api
-#     container_name: wpp_bot_api
-#     restart: always
-#     ports:
-#       - "5000:5000"
-#     env_file:
-#       - .env
-#     depends_on:
-#       - waha
-#     networks:
-#       default:
-#         aliases:
-#           - wpp_bot_api.local
-
-# volumes:
-#   waha-data:
-
+version: "3.9"
 
 services:
   evolution:
