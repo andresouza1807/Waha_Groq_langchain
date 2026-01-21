@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WhatsApp Bot - Painel de Mensagens</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-card .number {
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-card .label {
+            font-size: 12px;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+
+        .content {
+            display: flex;
+            min-height: 500px;
+        }
+
+        .sidebar {
+            width: 300px;
+            background: #f8f9fa;
+            border-right: 1px solid #dee2e6;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .filter-group {
+            margin-bottom: 20px;
+        }
+
+        .filter-group label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+
+        .filter-group select,
+        .filter-group button {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .filter-group button {
+            background: #667eea;
+            color: white;
+            border: none;
+            margin-top: 10px;
+            transition: background 0.3s;
+        }
+
+        .filter-group button:hover {
+            background: #764ba2;
+        }
+
+        .main {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .message-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .message-item {
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .message-item:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            border-color: #667eea;
+        }
+
+        .message-item.selected {
+            background: #f0f4ff;
+            border-color: #667eea;
+        }
+
+        .message-item .sender {
+            font-weight: 600;
+            color: #212529;
+            margin-bottom: 5px;
+        }
+
+        .message-item .text {
+            color: #495057;
+            font-size: 13px;
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+
+        .message-item .timestamp {
+            font-size: 12px;
+            color: #6c757d;
+        }
+
+        .message-item .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+
+        .badge.pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .badge.responded {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .message-detail {
+            display: none;
+            padding: 20px;
+            border-left: 1px solid #dee2e6;
+            min-width: 400px;
+            background: white;
+        }
+
+        .message-detail.active {
+            display: block;
+        }
+
+        .message-detail h3 {
+            color: #212529;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        .detail-field {
+            margin-bottom: 15px;
+        }
+
+        .detail-field label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            color: #6c757d;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+
+        .detail-field .value {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 6px;
+            color: #212529;
+            word-break: break-word;
+            line-height: 1.5;
+        }
+
+        .detail-field textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 14px;
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .actions button {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #764ba2;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .btn-copy {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-copy:hover {
+            background: #218838;
+        }
+
+        .empty {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+        }
+
+        .empty-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+
+        .refresh-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: #667eea;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 24px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s;
+        }
+
+        .refresh-btn:hover {
+            background: #764ba2;
+            transform: scale(1.1);
+        }
+
+        .refresh-btn.loading {
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 100px;
+            right: 30px;
+            background: #28a745;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            animation: slideUp 0.3s ease-out;
+            z-index: 1000;
+        }
+
+        .toast.error {
+            background: #dc3545;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .content {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                border-right: none;
+                border-bottom: 1px solid #dee2e6;
+            }
+
+            .message-detail {
+                min-width: auto;
+                border-left: none;
+                border-top: 1px solid #dee2e6;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 Painel de Mensagens</h1>
+            <p>WhatsApp Bot - Gerenciador de Respostas</p>
+        </div>
+
+        <div class="stats">
+            <div class="stat-card">
+                <div class="number" id="total-msgs">0</div>
+                <div class="label">Total de Mensagens</div>
+            </div>
+            <div class="stat-card">
+                <div class="number" id="pending-msgs">0</div>
+                <div class="label">Pendentes</div>
+            </div>
+            <div class="stat-card">
+                <div class="number" id="responded-msgs">0</div>
+                <div class="label">Respondidas</div>
+            </div>
+        </div>
+
+        <div class="content">
+            <div class="sidebar">
+                <div class="filter-group">
+                    <label>Filtrar por</label>
+                    <select id="filter-status">
+                        <option value="">Todas</option>
+                        <option value="pending">Pendentes</option>
+                        <option value="responded">Respondidas</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <button onclick="loadMessages()">🔄 Carregar</button>
+                </div>
+
+                <hr style="margin: 20px 0; border: none; border-top: 1px solid #dee2e6;">
+
+                <div id="message-list" class="message-list"></div>
+            </div>
+
+            <div id="message-detail" class="message-detail">
+                <div class="empty">
+                    <div class="empty-icon">📭</div>
+                    <p>Selecione uma mensagem para visualizar detalhes</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <button class="refresh-btn" onclick="autoRefresh()" id="refresh-btn" title="Atualizar automaticamente">🔄</button>
+
+    <script>
+        let autoRefreshInterval = null;
+        let messages = [];
+        let selectedMessageId = null;
+
+        // Carregar mensagens ao iniciar
+        document.addEventListener('DOMContentLoaded', () => {
+            loadMessages();
+            loadStats();
+        });
+
+        async function loadMessages() {
+            try {
+                const filter = document.getElementById('filter-status').value;
+                const endpoint = filter ? `/api/messages?status=${filter}` : '/api/messages';
+                
+                const response = await fetch(endpoint);
+                const data = await response.json();
+                
+                messages = data.messages || [];
+                renderMessages();
+                
+                showToast('Mensagens carregadas com sucesso', 'success');
+            } catch (error) {
+                showToast('Erro ao carregar mensagens', 'error');
+                console.error(error);
+            }
+        }
+
+        async function loadStats() {
+            try {
+                const response = await fetch('/api/stats');
+                const data = await response.json();
+                
+                document.getElementById('total-msgs').textContent = data.total || 0;
+                document.getElementById('pending-msgs').textContent = data.pending || 0;
+                document.getElementById('responded-msgs').textContent = data.responded || 0;
+            } catch (error) {
+                console.error('Erro ao carregar estatísticas:', error);
+            }
+        }
+
+        function renderMessages() {
+            const list = document.getElementById('message-list');
+            
+            if (messages.length === 0) {
+                list.innerHTML = '<div class="empty"><p>Nenhuma mensagem encontrada</p></div>';
+                return;
+            }
+
+            list.innerHTML = messages.map(msg => `
+                <div class="message-item ${msg.id === selectedMessageId ? 'selected' : ''}" 
+                     onclick="selectMessage('${msg.id}')">
+                    <div class="sender">
+                        ${msg.sender_name}
+                        <span class="badge ${msg.responded ? 'responded' : 'pending'}">
+                            ${msg.responded ? '✓ Respondida' : '⏳ Pendente'}
+                        </span>
+                    </div>
+                    <div class="text">${escapeHtml(msg.message.substring(0, 60))}${msg.message.length > 60 ? '...' : ''}</div>
+                    <div class="timestamp">${formatTime(msg.timestamp)}</div>
+                </div>
+            `).join('');
+        }
+
+        function selectMessage(msgId) {
+            selectedMessageId = msgId;
+            const msg = messages.find(m => m.id === msgId);
+            
+            if (!msg) return;
+
+            const detail = document.getElementById('message-detail');
+            const responseText = msg.response || '';
+            
+            detail.innerHTML = `
+                <div>
+                    <h3>📨 Mensagem de ${msg.sender_name}</h3>
+                    
+                    <div class="detail-field">
+                        <label>De</label>
+                        <div class="value">${escapeHtml(msg.sender_name)} (${msg.sender_id})</div>
+                    </div>
+
+                    <div class="detail-field">
+                        <label>Mensagem</label>
+                        <div class="value">${escapeHtml(msg.message)}</div>
+                    </div>
+
+                    <div class="detail-field">
+                        <label>Recebida em</label>
+                        <div class="value">${formatDateTime(msg.timestamp)}</div>
+                    </div>
+
+                    ${msg.responded ? `
+                        <div class="detail-field">
+                            <label>Respondida em</label>
+                            <div class="value">${formatDateTime(msg.response_timestamp)}</div>
+                        </div>
+                    ` : ''}
+
+                    <div class="detail-field">
+                        <label>Resposta</label>
+                        <textarea id="response-text" placeholder="Digite a resposta...">${escapeHtml(responseText)}</textarea>
+                    </div>
+
+                    <div class="detail-field">
+                        <label>Notas</label>
+                        <textarea id="notes-text" placeholder="Adicione notas...">${escapeHtml(msg.notes)}</textarea>
+                    </div>
+
+                    <div class="actions">
+                        <button class="btn-copy" onclick="copyResponse()">📋 Copiar Resposta</button>
+                        <button class="btn-primary" onclick="saveResponse('${msgId}')">💾 Salvar</button>
+                    </div>
+                </div>
+            `;
+
+            renderMessages();
+        }
+
+        async function saveResponse(msgId) {
+            const responseText = document.getElementById('response-text').value;
+            const notesText = document.getElementById('notes-text').value;
+
+            try {
+                const response = await fetch(`/api/messages/${msgId}/response`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        response: responseText,
+                        notes: notesText
+                    })
+                });
+
+                if (response.ok) {
+                    showToast('Resposta salva com sucesso!', 'success');
+                    loadMessages();
+                    loadStats();
+                } else {
+                    showToast('Erro ao salvar resposta', 'error');
+                }
+            } catch (error) {
+                showToast('Erro ao salvar resposta', 'error');
+                console.error(error);
+            }
+        }
+
+        function copyResponse() {
+            const responseText = document.getElementById('response-text').value;
+            if (!responseText) {
+                showToast('Nenhuma resposta para copiar', 'error');
+                return;
+            }
+
+            navigator.clipboard.writeText(responseText).then(() => {
+                showToast('Resposta copiada para a área de transferência!', 'success');
+            });
+        }
+
+        function autoRefresh() {
+            const btn = document.getElementById('refresh-btn');
+            
+            if (autoRefreshInterval) {
+                clearInterval(autoRefreshInterval);
+                autoRefreshInterval = null;
+                btn.classList.remove('loading');
+                showToast('Auto-refresh desativado', 'success');
+            } else {
+                autoRefreshInterval = setInterval(() => {
+                    loadMessages();
+                    loadStats();
+                }, 5000);
+                btn.classList.add('loading');
+                showToast('Auto-refresh ativado (a cada 5s)', 'success');
+            }
+        }
+
+        function showToast(message, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type === 'error' ? 'error' : ''}`;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.animation = 'slideUp 0.3s ease-out reverse';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function formatTime(timestamp) {
+            const date = new Date(timestamp);
+            const now = new Date();
+            const diff = now - date;
+            
+            if (diff < 60000) return 'agora';
+            if (diff < 3600000) return `${Math.floor(diff / 60000)}m atrás`;
+            if (diff < 86400000) return `${Math.floor(diff / 3600000)}h atrás`;
+            
+            return date.toLocaleDateString('pt-BR');
+        }
+
+        function formatDateTime(timestamp) {
+            const date = new Date(timestamp);
+            return date.toLocaleString('pt-BR');
+        }
+
+        // Recarregar ao mudar filtro
+        document.getElementById('filter-status').addEventListener('change', loadMessages);
+    </script>
+</body>
+</html>

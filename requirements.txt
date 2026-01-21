@@ -7,5 +7,5 @@ langchain-groq==0.2.0
 requests==2.32.3
 urllib3==2.2.3
 gunicorn==22.0.0
-Werkzeug==3.0.4
 yarl==1.15.2
+schedule==1.2.2

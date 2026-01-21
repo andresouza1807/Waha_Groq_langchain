@@ -33,6 +33,72 @@ services:
       timeout: 5s
       retries: 5
 
+  evolution:
+    image: atendai/evolution-api:latest
+    container_name: evolution_api
+    restart: always
+    ports:
+      - "8080:8080"
+    environment:
+      - SERVER_TYPE=http
+      - SERVER_PORT=8080
+      - SERVER_URL=http://localhost:8080
+      - CORS_ORIGIN=*
+      - CORS_METHODS=GET,POST,PUT,DELETE
+      - CORS_CREDENTIALS=true
+      - DATABASE_ENABLED=true
+      - DATABASE_PROVIDER=postgresql
+      - DATABASE_CONNECTION_URI=postgresql://postgres:postgres@evolution_db:5432/evolution?schema=public
+      - DATABASE_SAVE_DATA_INSTANCE=true
+      - REDIS_ENABLED=false
+      - CACHE_REDIS_ENABLED=false
+      - AUTHENTICATION_API_KEY=B6D711FCDE4D4FD5936544120E713976
+      - AUTHENTICATION_EXPOSE_IN_FETCH_INSTANCES=true
+      - QRCODE_LIMIT=30
+      - QRCODE_COLOR=#198754
+      - WEBSOCKET_ENABLED=false
+      - LOG_LEVEL=ERROR,WARN,DEBUG,INFO,LOG,VERBOSE,DARK,WEBHOOKS
+      - LOG_COLOR=true
+      - LOG_BAILEYS=error
+    volumes:
+      - evolution-instances:/evolution/instances
+    depends_on:
+      evolution_db:
+        condition: service_healthy
+    networks:
+      default:
+        aliases:
+          - evolution
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8080/"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+  waha:
+    image: devlikeapro/waha:latest
+    container_name: waha
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - WHATSAPP_API_KEY=${WHATSAPP_API_KEY}
+      - WAHA_DASHBOARD_USERNAME=admin
+      - WAHA_DASHBOARD_PASSWORD=${WAHA_PASSWORD:-586a698ccbc84bc2b537a0d25deb3041}
+    volumes:
+      - waha-sessions:/app/.sessions
+    networks:
+      default:
+        aliases:
+          - waha
+    healthcheck:
+      test: ["CMD", "echo", "ok"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
   api:
     build:
       context: .
@@ -44,13 +110,10 @@ services:
     env_file:
       - .env
     environment:
-      - EVOLUTION_API_URL=http://localhost:3333
-      - EVOLUTION_INSTANCE_NAME=default
+      - WAHA_API_URL=http://waha:3000
     depends_on:
-      evolution_db:
-        condition: service_healthy
-      evolution_redis:
-        condition: service_healthy
+      waha:
+        condition: service_started
     networks:
       default:
         aliases:
@@ -63,3 +126,5 @@ services:
 
 volumes:
   evolution-data:
+  evolution-instances:
+  waha-sessions:

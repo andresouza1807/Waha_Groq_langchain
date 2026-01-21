@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WhatsApp Bot - Painel Completo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .tabs {
+            display: flex;
+            border-bottom: 2px solid #dee2e6;
+            background: #f8f9fa;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 15px 20px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            color: #495057;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .tab-btn:hover {
+            background: #e9ecef;
+        }
+
+        .tab-btn.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+
+        .content {
+            padding: 30px;
+            display: none;
+        }
+
+        .content.active {
+            display: block;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            border-left: 4px solid #667eea;
+        }
+
+        .stat-card .number {
+            font-size: 28px;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-card .label {
+            font-size: 12px;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+
+        .main-content {
+            display: flex;
+            gap: 20px;
+            min-height: 600px;
+        }
+
+        .sidebar {
+            width: 300px;
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-y: auto;
+            max-height: 600px;
+        }
+
+        .list-item {
+            background: white;
+            padding: 12px;
+            margin-bottom: 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            border-left: 3px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .list-item:hover {
+            border-left-color: #667eea;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .list-item.selected {
+            background: #f0f4ff;
+            border-left-color: #667eea;
+        }
+
+        .list-item .title {
+            font-weight: 600;
+            color: #212529;
+            margin-bottom: 4px;
+        }
+
+        .list-item .meta {
+            font-size: 12px;
+            color: #6c757d;
+        }
+
+        .detail-panel {
+            flex: 1;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+            overflow-y: auto;
+            max-height: 600px;
+        }
+
+        .empty {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #212529;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 14px;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #764ba2;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+        }
+
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn-group .btn {
+            flex: 1;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+
+        .badge.active {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .badge.inactive {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .badge.recurring {
+            background: #cfe2ff;
+            color: #084298;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 100px;
+            right: 30px;
+            background: #28a745;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            animation: slideUp 0.3s ease-out;
+            z-index: 1000;
+        }
+
+        .toast.error {
+            background: #dc3545;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .refresh-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: #667eea;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 24px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .refresh-btn:hover {
+            background: #764ba2;
+        }
+
+        .two-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                max-height: auto;
+            }
+
+            .detail-panel {
+                max-height: auto;
+            }
+
+            .two-col {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 WhatsApp Bot - Painel Completo</h1>
+        </div>
+
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('messages')">📨 Mensagens</button>
+            <button class="tab-btn" onclick="switchTab('reminders')">⏰ Lembretes</button>
+        </div>
+
+        <!-- TAB: MENSAGENS -->
+        <div id="messages" class="content active">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="number" id="total-msgs">0</div>
+                    <div class="label">Total</div>
+                </div>
+                <div class="stat-card">
+                    <div class="number" id="pending-msgs">0</div>
+                    <div class="label">Pendentes</div>
+                </div>
+                <div class="stat-card">
+                    <div class="number" id="responded-msgs">0</div>
+                    <div class="label">Respondidas</div>
+                </div>
+            </div>
+
+            <div class="main-content">
+                <div class="sidebar">
+                    <h3 style="margin-bottom: 15px;">📬 Mensagens</h3>
+                    <select id="filter-status" onchange="loadMessages()" style="margin-bottom: 15px; width: 100%;">
+                        <option value="">Todas</option>
+                        <option value="pending">Pendentes</option>
+                        <option value="responded">Respondidas</option>
+                    </select>
+                    <div id="message-list"></div>
+                </div>
+
+                <div class="detail-panel" id="message-detail">
+                    <div class="empty">
+                        <p>Selecione uma mensagem</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB: LEMBRETES -->
+        <div id="reminders" class="content">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="number" id="total-reminders">0</div>
+                    <div class="label">Total</div>
+                </div>
+                <div class="stat-card">
+                    <div class="number" id="active-reminders">0</div>
+                    <div class="label">Ativos</div>
+                </div>
+                <div class="stat-card">
+                    <div class="number" id="scheduler-status">Parado</div>
+                    <div class="label">Scheduler</div>
+                </div>
+            </div>
+
+            <div class="main-content">
+                <div class="sidebar">
+                    <h3 style="margin-bottom: 15px;">⏰ Lembretes</h3>
+                    <button class="btn btn-primary" onclick="newReminder()" style="width: 100%; margin-bottom: 15px;">
+                        ➕ Novo Lembrete
+                    </button>
+                    <div id="reminder-list"></div>
+                </div>
+
+                <div class="detail-panel">
+                    <div id="reminder-form" style="display: none;">
+                        <h3 style="margin-bottom: 20px;">Novo Lembrete</h3>
+                        <form onsubmit="saveReminder(event)">
+                            <div class="two-col">
+                                <div class="form-group">
+                                    <label>Número WhatsApp</label>
+                                    <input type="text" id="reminder-numero" placeholder="5511999999999" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Data</label>
+                                    <input type="date" id="reminder-data" required>
+                                </div>
+                            </div>
+
+                            <div class="two-col">
+                                <div class="form-group">
+                                    <label>Hora</label>
+                                    <input type="time" id="reminder-hora" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Recorrência</label>
+                                    <select id="reminder-recorrente">
+                                        <option value="">Não</option>
+                                        <option value="diario">Diário</option>
+                                        <option value="semanal">Semanal</option>
+                                        <option value="mensal">Mensal</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Mensagem</label>
+                                <textarea id="reminder-mensagem" placeholder="Digite o lembrete..." required></textarea>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Notas</label>
+                                <textarea id="reminder-notas" placeholder="Observações extras..."></textarea>
+                            </div>
+
+                            <div class="btn-group">
+                                <button type="submit" class="btn btn-primary">💾 Salvar</button>
+                                <button type="button" class="btn btn-secondary" onclick="cancelReminder()">✕ Cancelar</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div id="reminder-empty" class="empty">
+                        <p>Nenhum lembrete selecionado</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <button class="refresh-btn" onclick="refreshAll()" title="Atualizar">🔄</button>
+
+    <script>
+        let currentTab = 'messages';
+        let selectedMessageId = null;
+        let selectedReminderId = null;
+        let reminders = [];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadMessages();
+            loadReminders();
+            loadStats();
+            
+            // Auto-refresh a cada 10 segundos
+            setInterval(() => {
+                if (currentTab === 'messages') loadMessages();
+                if (currentTab === 'reminders') loadReminders();
+                loadStats();
+            }, 10000);
+        });
+
+        function switchTab(tab) {
+            currentTab = tab;
+            
+            document.querySelectorAll('.content').forEach(c => c.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            
+            document.getElementById(tab).classList.add('active');
+            event.target.classList.add('active');
+            
+            if (tab === 'messages') loadMessages();
+            if (tab === 'reminders') loadReminders();
+        }
+
+        async function loadMessages() {
+            try {
+                const filter = document.getElementById('filter-status').value;
+                const endpoint = filter ? `/api/messages?status=${filter}` : '/api/messages';
+                
+                const response = await fetch(endpoint);
+                const data = await response.json();
+                
+                renderMessages(data.messages || []);
+            } catch (error) {
+                console.error(error);
+            }
+        }
+
+        async function loadStats() {
+            try {
+                const msgResponse = await fetch('/api/stats');
+                const msgData = await msgResponse.json();
+                
+                document.getElementById('total-msgs').textContent = msgData.total || 0;
+                document.getElementById('pending-msgs').textContent = msgData.pending || 0;
+                document.getElementById('responded-msgs').textContent = msgData.responded || 0;
+
+                const remResponse = await fetch('/api/reminders/stats');
+                const remData = await remResponse.json();
+                
+                document.getElementById('total-reminders').textContent = remData.total || 0;
+                document.getElementById('active-reminders').textContent = remData.active || 0;
+                document.getElementById('scheduler-status').textContent = remData.scheduler_running ? '✓ Rodando' : 'Parado';
+            } catch (error) {
+                console.error(error);
+            }
+        }
+
+        function renderMessages(messages) {
+            const list = document.getElementById('message-list');
+            
+            if (!messages.length) {
+                list.innerHTML = '<div class="empty"><p>Nenhuma mensagem</p></div>';
+                return;
+            }
+
+            list.innerHTML = messages.map(msg => `
+                <div class="list-item ${msg.id === selectedMessageId ? 'selected' : ''}" 
+                     onclick="selectMessage('${msg.id}')">
+                    <div class="title">${escapeHtml(msg.sender_name)}</div>
+                    <div class="meta">${formatTime(msg.timestamp)}</div>
+                    <div class="meta">${msg.responded ? '✓ Respondida' : '⏳ Pendente'}</div>
+                </div>
+            `).join('');
+        }
+
+        function selectMessage(msgId) {
+            selectedMessageId = msgId;
+            
+            fetch(`/api/messages`)
+                .then(r => r.json())
+                .then(data => {
+                    const msg = data.messages.find(m => m.id === msgId);
+                    if (msg) showMessageDetail(msg);
+                    renderMessages(data.messages);
+                });
+        }
+
+        function showMessageDetail(msg) {
+            const panel = document.getElementById('message-detail');
+            
+            panel.innerHTML = `
+                <h3>📨 Mensagem de ${escapeHtml(msg.sender_name)}</h3>
+                
+                <div class="form-group">
+                    <label>De</label>
+                    <input type="text" value="${escapeHtml(msg.sender_name)}" disabled>
+                </div>
+
+                <div class="form-group">
+                    <label>Mensagem Original</label>
+                    <textarea disabled>${escapeHtml(msg.message)}</textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Resposta</label>
+                    <textarea id="response-text">${escapeHtml(msg.response || '')}</textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Notas</label>
+                    <textarea id="notes-text">${escapeHtml(msg.notes || '')}</textarea>
+                </div>
+
+                <div class="btn-group">
+                    <button class="btn btn-primary" onclick="copyResponse()">📋 Copiar</button>
+                    <button class="btn btn-secondary" onclick="saveMessageResponse('${msgId}')">💾 Salvar</button>
+                </div>
+            `;
+        }
+
+        function copyResponse() {
+            const text = document.getElementById('response-text').value;
+            navigator.clipboard.writeText(text).then(() => {
+                showToast('Copiado!');
+            });
+        }
+
+        function saveMessageResponse(msgId) {
+            const response = document.getElementById('response-text').value;
+            const notes = document.getElementById('notes-text').value;
+
+            fetch(`/api/messages/${msgId}/response`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ response, notes })
+            }).then(() => {
+                showToast('Salvo com sucesso!');
+                loadMessages();
+            });
+        }
+
+        async function loadReminders() {
+            try {
+                const response = await fetch('/api/reminders');
+                const data = await response.json();
+                
+                reminders = data.reminders || [];
+                renderReminders();
+            } catch (error) {
+                console.error(error);
+            }
+        }
+
+        function renderReminders() {
+            const list = document.getElementById('reminder-list');
+            
+            if (!reminders.length) {
+                list.innerHTML = '<div class="empty"><p>Nenhum lembrete</p></div>';
+                return;
+            }
+
+            list.innerHTML = reminders.map(r => `
+                <div class="list-item ${r.id === selectedReminderId ? 'selected' : ''}" 
+                     onclick="selectReminder(${r.id})">
+                    <div class="title">${escapeHtml(r.mensagem.substring(0, 30))}</div>
+                    <div class="meta">${r.data} ${r.hora}</div>
+                    <div class="meta">
+                        <span class="badge ${r.ativo ? 'active' : 'inactive'}">
+                            ${r.ativo ? '✓ Ativo' : 'Inativo'}
+                        </span>
+                        ${r.recorrente ? `<span class="badge recurring">${r.recorrente}</span>` : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function newReminder() {
+            selectedReminderId = null;
+            document.getElementById('reminder-form').style.display = 'block';
+            document.getElementById('reminder-empty').style.display = 'none';
+            document.getElementById('reminder-numero').value = '';
+            document.getElementById('reminder-data').value = '';
+            document.getElementById('reminder-hora').value = '';
+            document.getElementById('reminder-recorrente').value = '';
+            document.getElementById('reminder-mensagem').value = '';
+            document.getElementById('reminder-notas').value = '';
+        }
+
+        function selectReminder(id) {
+            selectedReminderId = id;
+            const reminder = reminders.find(r => r.id === id);
+            if (reminder) showReminderDetail(reminder);
+            renderReminders();
+        }
+
+        function showReminderDetail(reminder) {
+            document.getElementById('reminder-empty').style.display = 'none';
+            document.getElementById('reminder-form').style.display = 'block';
+            
+            document.getElementById('reminder-numero').value = reminder.numero;
+            document.getElementById('reminder-data').value = reminder.data;
+            document.getElementById('reminder-hora').value = reminder.hora;
+            document.getElementById('reminder-recorrente').value = reminder.recorrente || '';
+            document.getElementById('reminder-mensagem').value = reminder.mensagem;
+            document.getElementById('reminder-notas').value = reminder.notas;
+        }
+
+        function cancelReminder() {
+            selectedReminderId = null;
+            document.getElementById('reminder-form').style.display = 'none';
+            document.getElementById('reminder-empty').style.display = 'block';
+            renderReminders();
+        }
+
+        function saveReminder(event) {
+            event.preventDefault();
+
+            const reminder = {
+                numero: document.getElementById('reminder-numero').value,
+                mensagem: document.getElementById('reminder-mensagem').value,
+                data: document.getElementById('reminder-data').value,
+                hora: document.getElementById('reminder-hora').value,
+                recorrente: document.getElementById('reminder-recorrente').value || false,
+                notas: document.getElementById('reminder-notas').value
+            };
+
+            const method = selectedReminderId ? 'PUT' : 'POST';
+            const url = selectedReminderId ? `/api/reminders/${selectedReminderId}` : '/api/reminders';
+
+            fetch(url, {
+                method: method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(reminder)
+            }).then(() => {
+                showToast('Lembrete salvo com sucesso!');
+                loadReminders();
+                cancelReminder();
+            });
+        }
+
+        function refreshAll() {
+            loadMessages();
+            loadReminders();
+            loadStats();
+            showToast('Atualizado!');
+        }
+
+        function showToast(message) {
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function formatTime(timestamp) {
+            const date = new Date(timestamp);
+            const now = new Date();
+            const diff = now - date;
+            
+            if (diff < 60000) return 'agora';
+            if (diff < 3600000) return `${Math.floor(diff / 60000)}m`;
+            if (diff < 86400000) return `${Math.floor(diff / 3600000)}h`;
+            
+            return date.toLocaleDateString('pt-BR');
+        }
+    </script>
+</body>
+</html>
